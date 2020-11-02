@@ -9,10 +9,10 @@ namespace Shared.Products
 {
     public interface IProductService
     {
-        public Task<int> CreateProduct(ProductRequest request);
-        public Task<List<ProductReponse>> GetAllProduct();
-        public Task<ProductReponse> GetProductById(int CategoryId);
-        public Task<int> UpdateProduct(ProductRequest request);
-        public Task<int> DeleteProduct(int Id);
+         Task<int> CreateProduct(ProductRequest request);
+         Task<List<ProductReponse>> GetAllProduct();
+         Task<ProductReponse> GetProductById(int CategoryId);
+         Task<int> UpdateProduct(ProductRequest request);
+         Task<int> DeleteProduct(int Id);
     }
 }
