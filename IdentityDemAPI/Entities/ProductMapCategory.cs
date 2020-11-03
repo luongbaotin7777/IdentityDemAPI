@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace IdentityDemoAPI.Data.Models
+namespace IdentityDemo.API.Entities
 {
     public class ProductMapCategory
     {

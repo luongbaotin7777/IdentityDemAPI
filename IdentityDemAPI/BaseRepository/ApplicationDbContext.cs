@@ -1,4 +1,4 @@
-﻿
+﻿using IdentityDemo.API.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace IdentityDemoAPI.Data.Models
+namespace IdentityDemo.API.BaseRepository
 {
-    public class ApplicationDbContext : IdentityDbContext<AppUser,AppRole,Guid>
+    public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     {
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
@@ -50,7 +50,7 @@ namespace IdentityDemoAPI.Data.Models
             modelBuilder.Entity<IdentityUserLogin<Guid>>().ToTable("AppUserLogins").HasKey(ul => ul.UserId);
             modelBuilder.Entity<IdentityRoleClaim<Guid>>().ToTable("AppUserRoleClaims");
             modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("AppUserTokens").HasKey(ut => ut.UserId);
-            
+
         }
         //End
         public DbSet<Product> Products { get; set; }

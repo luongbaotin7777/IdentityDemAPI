@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Shared.Users
+namespace IdentityDemo.API.Dtos
 {
-   public class UserReponse
+    public class UserMessageReponse
     {
         public string Message { get; set; }
         public bool IsSuccess { get; set; }

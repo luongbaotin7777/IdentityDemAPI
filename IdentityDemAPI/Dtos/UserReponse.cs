@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace Shared.Users
+namespace IdentityDemo.API.Dtos
 {
-    public class UserRegisterRequest
+    public class UserReponse
     {
-
         [Required]
         public string FirstName { get; set; }
         [Required]
@@ -24,10 +23,5 @@ namespace Shared.Users
         public string PhoneNumber { get; set; }
         [Required]
         public string UserName { get; set; }
-        [Required]
-        [StringLength(50,MinimumLength =6)]
-      
-        public string Password { get; set; }
-        public string ConfirmPassword { get; set; }
     }
 }

@@ -20,10 +20,5 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\IdentityDemoAPI.Data\IdentityDemoAPI.Data.csproj" />
-    <ProjectReference Include="..\Shared\Shared.csproj" />
-  </ItemGroup>
-
 
 </Project>

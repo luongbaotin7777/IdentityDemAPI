@@ -1,4 +1,7 @@
-﻿using IdentityDemoAPI.Data.Models;
+﻿using IdentityDemo.API.BaseRepository;
+using IdentityDemo.API.Dtos;
+using IdentityDemo.API.Entities;
+using IdentityDemo.API.Services.Interface;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -6,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shared.Products
+namespace IdentityDemo.API.Services.Handle
 {
     public class ProductService : IProductService
     {
@@ -34,7 +37,7 @@ namespace Shared.Products
             if (product == null) throw new Exception($"Id not found, Please re-enter the correct Id ");
             _context.Products.Remove(product);
             return await _context.SaveChangesAsync();
-            
+
         }
 
         public async Task<List<ProductReponse>> GetAllProduct()
@@ -46,7 +49,7 @@ namespace Shared.Products
                 Price = x.Price,
                 Description = x.Description
             }).ToListAsync();
-            return  product;
+            return product;
 
         }
 
