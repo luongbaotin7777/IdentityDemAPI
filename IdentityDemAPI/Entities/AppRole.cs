@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace IdentityDemoAPI.Data.Models
+namespace IdentityDemo.API.Entities
 {
-    public class AppRole:IdentityRole<Guid>
+    public class AppRole : IdentityRole<Guid>
     {
         public string Description { get; set; }
     }

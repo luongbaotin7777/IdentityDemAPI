@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IdentityDemo.API.Dtos;
+using IdentityDemo.API.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Users;
 
 namespace IdentityDemo.API.Controllers
 {
@@ -56,6 +57,17 @@ namespace IdentityDemo.API.Controllers
         public IActionResult Lockout()
         {
             return BadRequest("Your account is lock");
+        }
+        //api/auth/user
+        [HttpGet("User")]
+        public async Task<IActionResult> GetAllUser()
+        {
+            var user = await _userService.GetAllUserAsync();
+            if(user == null)
+            {
+                return NotFound("User not Found");
+            }
+            return Ok(user);
         }
     }
 }

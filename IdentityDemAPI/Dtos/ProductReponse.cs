@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Shared.Products
+namespace IdentityDemo.API.Dtos
 {
     public class ProductReponse
     {

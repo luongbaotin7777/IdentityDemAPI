@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IdentityDemo.API.Dtos;
+using IdentityDemo.API.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Products;
 
 namespace IdentityDemo.API.Controllers
 {
@@ -47,6 +48,7 @@ namespace IdentityDemo.API.Controllers
         [HttpPut]
         public async Task<IActionResult> Update([FromBody]ProductRequest request)
         {
+            
             var product = await _service.UpdateProduct(request);
             if(product == null)
             {

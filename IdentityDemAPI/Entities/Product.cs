@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace IdentityDemoAPI.Data.Models
+namespace IdentityDemo.API.Entities
 {
-    public class Category
+    public class Product
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public decimal Price { get; set; }
+        public string Description { get; set; }
         public ICollection<ProductMapCategory> ProductMapCategories { get; set; }
     }
 }

@@ -1,5 +1,8 @@
-﻿using IdentityDemoAPI.Data.Models;
+﻿using IdentityDemo.API.Dtos;
+using IdentityDemo.API.Entities;
+using IdentityDemo.API.Services.Interface;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -25,17 +28,34 @@ namespace Shared.Users
             _roleManager = roleManager;
             _configuration = configuration;
         }
-        public async Task<UserReponse> LoginUserAsync(UserLoginRequest request)
+
+        public async Task<List<UserReponse>> GetAllUserAsync()
+        {
+            var user = await _userManager.Users.Select(x => new UserReponse()
+            {
+                
+                UserName = x.UserName,
+                FirstName = x.FirstName,
+                LastName = x.LastName,
+                Email = x.Email,
+                Dob = x.Dob,
+                PhoneNumber = x.PhoneNumber
+            }).ToListAsync();
+            return user;
+        }
+
+        public async Task<UserMessageReponse> LoginUserAsync(UserLoginRequest request)
         {
             var user = await _userManager.FindByNameAsync(request.UserName);
             if (user == null)
             {
-                return new UserReponse()
+                return new UserMessageReponse()
                 {
                     Message = "There is no user with  that UserName",
                     IsSuccess = false
                 };
             }
+            
             var result = await _signInManager.PasswordSignInAsync(user, request.Password, request.Remeberme, false);
             if (result.Succeeded)
             
@@ -54,12 +74,12 @@ namespace Shared.Users
                         issuer: _configuration["AuthSettings:Issuer"],
                         audience: _configuration["AuthSettings:Audience"],
                         claims: claim,
-                        expires: DateTime.Now.AddDays(30),
+                        expires: DateTime.UtcNow.AddMinutes(2),
                         signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
                     );
                 string TokenAsString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                return new UserReponse()
+                return new UserMessageReponse()
                 {
                     Message = TokenAsString,
                     IsSuccess = true,
@@ -68,7 +88,7 @@ namespace Shared.Users
             }
             else
             {
-                return new UserReponse()
+                return new UserMessageReponse()
                 {
                     Message = "Invalid password",
                     IsSuccess = false
@@ -78,7 +98,7 @@ namespace Shared.Users
 
         }
 
-        public async Task<UserReponse> RegisterUserAsync(UserRegisterRequest request)
+        public async Task<UserMessageReponse> RegisterUserAsync(UserRegisterRequest request)
         {
             if (request == null)
             {
@@ -86,7 +106,7 @@ namespace Shared.Users
             }
             if (request.Password != request.ConfirmPassword)
             {
-                return new UserReponse()
+                return new UserMessageReponse()
                 {
                     Message = "Confirm password doestn't match the password",
                     IsSuccess = false,
@@ -105,13 +125,13 @@ namespace Shared.Users
             var resutl = await _userManager.CreateAsync(user, request.Password);
             if (resutl.Succeeded)
             {
-                return new UserReponse()
+                return new UserMessageReponse()
                 {
                     Message = "User created Successfully!",
                     IsSuccess = true,
                 };
             }
-            return new UserReponse()
+            return new UserMessageReponse()
             {
                 Message = "User did not create",
                 IsSuccess = false,
