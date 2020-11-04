@@ -20,7 +20,7 @@ namespace IdentityDemo.API.Controllers
         {
             _userService = userService;
         }
-        //api/auth/register
+        //POST: /api/auth/register
         [HttpPost("Register")]
         [AllowAnonymous]
         public async Task<IActionResult> Register ([FromBody] UserRegisterRequest request)
@@ -35,7 +35,7 @@ namespace IdentityDemo.API.Controllers
             return BadRequest("Some properties are not valid");
            
         }
-        //api/auth/login
+        //POST: /api/auth/login
         [HttpPost("Login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login ([FromBody] UserLoginRequest request)
@@ -52,22 +52,67 @@ namespace IdentityDemo.API.Controllers
             return BadRequest("Some properties are not valid");
             
         }
+       
         [HttpGet]
-        [AllowAnonymous]
         public IActionResult Lockout()
         {
             return BadRequest("Your account is lock");
         }
-        //api/auth/user
+        
+        //Get: /api/auth/user
         [HttpGet("User")]
-        public async Task<IActionResult> GetAllUser()
+        public async Task<IActionResult> GetAllUser(string Username,string Email)
         {
-            var user = await _userService.GetAllUserAsync();
+            var user = await _userService.GetAllUserAsync(Username, Email);
             if(user == null)
             {
                 return NotFound("User not Found");
             }
             return Ok(user);
         }
+        //Get: /api/auth/user/id
+        [HttpGet("User/{Id}")]
+        public async Task<IActionResult> GetUserById(string Id)
+        {
+            var user = await _userService.GetUserByIdAsync(Id);
+            if(user == null)
+            {
+                return NotFound(user);
+            }
+            return Ok(user);
+        }
+        //DELETE: /api/auth/user/id
+        [HttpDelete("User/{Id}")]
+        public async Task<IActionResult> DeleteUser(string Id)
+        {
+            var user = await _userService.DeleteUserAsync(Id);
+            if (user == null)
+            {
+                return NotFound("Id not Found");
+            }
+            else
+            {
+                return Ok();
+            }
+           
+        }
+        //Put: /api/auth/user/id
+        [HttpPut("User/{Id}")]
+        public async Task<IActionResult> UpdateUser(Guid Id,UserUpdateRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var user = await _userService.UpdateUserAsync(Id,request);
+            if (user==null)
+            {
+                return BadRequest(user);
+            }
+            return Ok(user);
+        }
+       
+
+
     }
 }

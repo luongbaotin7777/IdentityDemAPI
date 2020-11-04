@@ -6,23 +6,20 @@ using System.Threading.Tasks;
 
 namespace IdentityDemo.API.Dtos
 {
-    public class UserReponse
+    public class UserUpdateRequest
     {
         public Guid Id { get; set; }
-        [Required]
+        
         public string FirstName { get; set; }
-        [Required]
+        
         public string LastName { get; set; }
-        [Required]
-        public DateTime Dob { get; set; }
-        [Required]
-        [EmailAddress]
-        [StringLength(50)]
+  
+        public DateTime? Dob { get; set; }
+       
         public string Email { get; set; }
-        [Required]
-        [Phone]
+        
         public string PhoneNumber { get; set; }
-        [Required]
-        public string UserName { get; set; }
+        public string Password { get; set; }
+
     }
 }

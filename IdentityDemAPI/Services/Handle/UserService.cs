@@ -1,7 +1,9 @@
-﻿using IdentityDemo.API.Dtos;
+﻿using IdentityDemo.API.BaseRepository;
+using IdentityDemo.API.Dtos;
 using IdentityDemo.API.Entities;
 using IdentityDemo.API.Services.Interface;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -21,27 +23,91 @@ namespace Shared.Users
         private readonly SignInManager<AppUser> _signInManager;
         private readonly RoleManager<AppRole> _roleManager;
         private readonly IConfiguration _configuration;
-        public UserService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, RoleManager<AppRole> roleManager, IConfiguration configuration)
+        private readonly IPasswordHasher<AppUser> _passwordHasher;
+       
+        public UserService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, RoleManager<AppRole> roleManager, IConfiguration configuration, IPasswordHasher<AppUser> passwordHasher)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _configuration = configuration;
+            _passwordHasher = passwordHasher;
+           
         }
 
-        public async Task<List<UserReponse>> GetAllUserAsync()
+        public async Task<UserMessageReponse> DeleteUserAsync(string Id)
         {
-            var user = await _userManager.Users.Select(x => new UserReponse()
+            var user = await _userManager.FindByIdAsync(Id.ToString());
+            if (user == null) throw new Exception($"{Id} not Found");
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
             {
-                
-                UserName = x.UserName,
-                FirstName = x.FirstName,
-                LastName = x.LastName,
-                Email = x.Email,
-                Dob = x.Dob,
-                PhoneNumber = x.PhoneNumber
-            }).ToListAsync();
-            return user;
+                return new UserMessageReponse()
+                {
+                    Message = "User Deleted",
+                    IsSuccess = true
+                };
+            }
+            return new UserMessageReponse()
+            {
+                Message = "Delete Failed",
+                IsSuccess = false
+            };
+
+        }
+
+        public async Task<List<UserReponse>> GetAllUserAsync(string UserName,string Email)
+        {
+            
+            if (!string.IsNullOrEmpty(UserName) || !string.IsNullOrEmpty(Email))
+            {
+                var user = _userManager.Users.Where(x => x.UserName.Contains(UserName) || x.Email.Contains(Email));
+                var result = await user.Select(x => new UserReponse()
+                {
+                    Id = x.Id,
+                    UserName = x.UserName,
+                    FirstName = x.FirstName,
+                    LastName = x.LastName,
+                    Email = x.Email,
+                    Dob = x.Dob,
+                    PhoneNumber = x.PhoneNumber
+                }).ToListAsync();
+                return result;
+            }
+            else
+            {
+                var user = await _userManager.Users.Select(x => new UserReponse()
+                {
+                    Id = x.Id,
+                    UserName = x.UserName,
+                    FirstName = x.FirstName,
+                    LastName = x.LastName,
+                    Email = x.Email,
+                    Dob = x.Dob,
+                    PhoneNumber = x.PhoneNumber
+                }).ToListAsync();
+                return user;
+            }
+            
+            
+        }
+
+        public async Task<UserReponse> GetUserByIdAsync(string Id)
+        {
+            var users = await _userManager.FindByIdAsync(Id.ToString());
+            if (users == null) throw new Exception($"{Id} not found");
+            var data = new UserReponse()
+            {
+                Id = users.Id,
+                UserName = users.UserName,
+                FirstName = users.FirstName,
+                LastName = users.LastName,
+                Dob = users.Dob,
+                Email = users.Email,
+                PhoneNumber = users.PhoneNumber
+            };
+            return data;
+
         }
 
         public async Task<UserMessageReponse> LoginUserAsync(UserLoginRequest request)
@@ -55,10 +121,10 @@ namespace Shared.Users
                     IsSuccess = false
                 };
             }
-            
+
             var result = await _signInManager.PasswordSignInAsync(user, request.Password, request.Remeberme, false);
             if (result.Succeeded)
-            
+
             {
                 var roles = await _userManager.GetRolesAsync(user);
                 var claim = new[]
@@ -74,7 +140,7 @@ namespace Shared.Users
                         issuer: _configuration["AuthSettings:Issuer"],
                         audience: _configuration["AuthSettings:Audience"],
                         claims: claim,
-                        expires: DateTime.UtcNow.AddMinutes(2),
+                        expires: DateTime.UtcNow.AddDays(7),
                         signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
                     );
                 string TokenAsString = new JwtSecurityTokenHandler().WriteToken(token);
@@ -94,7 +160,7 @@ namespace Shared.Users
                     IsSuccess = false
                 };
             }
-           
+
 
         }
 
@@ -112,7 +178,24 @@ namespace Shared.Users
                     IsSuccess = false,
                 };
             };
-            var user = new AppUser()
+            var user = await _userManager.FindByNameAsync(request.UserName);
+            if (user != null)
+            {
+                return new UserMessageReponse()
+                {
+                    Message = "Username is already existed!",
+                    IsSuccess = false,
+                };
+            }
+            if (await _userManager.FindByEmailAsync(request.Email) != null)
+            {
+                return new UserMessageReponse()
+                {
+                    Message = "Email is already existed!",
+                    IsSuccess = false,
+                };
+            }
+            user = new AppUser()
             {
                 Dob = request.Dob,
                 Email = request.Email,
@@ -138,6 +221,112 @@ namespace Shared.Users
                 Errors = resutl.Errors.Select(e => e.Description)
             };
 
+        }
+
+        public async Task<UserMessageReponse> UpdateUserAsync(Guid Id, UserUpdateRequest request)
+        {
+            if (await _userManager.Users.AnyAsync(x => x.Email == request.Email && x.Id != Id))
+            {
+                return new UserMessageReponse()
+                {
+                    Message = "Email is Already Existed",
+                    IsSuccess = false
+                };
+            }
+            var user = await _userManager.FindByIdAsync(Id.ToString());
+            if (user == null)
+            {
+                return new UserMessageReponse()
+                {
+                    Message = "Id not Found",
+                    IsSuccess = false
+                };
+            }
+            if (!string.IsNullOrEmpty(request.FirstName))
+            {
+                user.FirstName = request.FirstName;
+            }
+            else
+            {
+                return new UserMessageReponse()
+                {
+                    Message = "First name cannot be empty",
+                    IsSuccess = false
+                };
+            }
+            if (!string.IsNullOrEmpty(request.LastName))
+            {
+                user.LastName = request.LastName;
+            }
+            else
+            {
+                return new UserMessageReponse()
+                {
+                    Message = "Last name cannot be empty",
+                    IsSuccess = false
+                };
+            }
+            if (!string.IsNullOrEmpty(request.PhoneNumber))
+            {
+                user.PhoneNumber = request.PhoneNumber;
+            }
+            else
+            {
+                return new UserMessageReponse()
+                {
+                    Message = "PhoneNumber cannot be empty",
+                    IsSuccess = false
+                };
+            }
+            if (!string.IsNullOrEmpty(request.Email))
+            {
+                user.Email = request.Email;
+            }
+            else
+            {
+                return new UserMessageReponse()
+                {
+                    Message = "Email cannot be empty",
+                    IsSuccess = false
+                };
+            }
+            if (request.Dob.HasValue)
+            {
+                user.Dob = (DateTime)request.Dob;
+            }
+            else
+            {
+                return new UserMessageReponse()
+                {
+                    Message = "Dob cannot be empty",
+                    IsSuccess = false
+                };
+            }
+            if (!string.IsNullOrEmpty(request.Password))
+            {
+                user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
+            }
+            else
+            {
+                return new UserMessageReponse()
+                {
+                    Message = "PassWord cannot be empty",
+                    IsSuccess = false
+                };
+            }
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+                return new UserMessageReponse()
+                {
+                    Message = "User Updated",
+                    IsSuccess = true
+
+                };
+            return new UserMessageReponse()
+            {
+                Message = "Update Failed",
+                IsSuccess = true
+            };
         }
     }
 }
