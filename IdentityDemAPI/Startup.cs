@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,14 +37,22 @@ namespace IdentityDemo.API
         {       //SQL DbContext
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
-            // Add Identity
+            // Register identity service
             services.AddIdentity<AppUser, AppRole>(options =>
              {
                  //Password.RequiredDigit is default true
                  //Password.RequiredLowerCase is default true
                  options.Password.RequiredLength = 5;
-             }).AddEntityFrameworkStores<ApplicationDbContext>()
-                 .AddDefaultTokenProviders();
+                 // Cấu hình Lockout - khóa user
+                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); // Khóa 5 phút
+                 options.Lockout.MaxFailedAccessAttempts = 5; // Thất bại 5 lần thì khóa
+                 options.Lockout.AllowedForNewUsers = true;
+                 options.User.RequireUniqueEmail = true;
+                 // Cấu hình đăng nhập.
+               /*  options.SignIn.RequireConfirmedEmail = true; */           // Cấu hình xác thực địa chỉ email (email phải tồn tại)
+                /* options.SignIn.RequireConfirmedPhoneNumber = false;*/     // Xác thực số điện thoại
+             }).AddEntityFrameworkStores<ApplicationDbContext>() // lưu trữ thông tin identity trên EF( dbcontext->MySQL)
+                 .AddDefaultTokenProviders();// register tokenprovider : phát sinh token (resetpassword, email...)
             services.AddAuthentication(auth =>
             {
                 auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -67,10 +75,13 @@ namespace IdentityDemo.API
 
             //DI IProductService
             services.AddTransient<IProductService, ProductService>();
+            //DI UserManager,SignInManager & RoleManager
             services.AddTransient<UserManager<AppUser>,UserManager<AppUser>>();
             services.AddTransient<SignInManager<AppUser>,SignInManager<AppUser>>();
             services.AddTransient<RoleManager<AppRole>, RoleManager<AppRole>>();
+            //DI IUserService
             services.AddTransient<IUserService, UserService>();
+
             services.AddControllers();
         }
 

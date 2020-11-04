@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient.Server;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 
 namespace IdentityDemo.API.Services.Handle
 {
@@ -40,16 +42,32 @@ namespace IdentityDemo.API.Services.Handle
 
         }
 
-        public async Task<List<ProductReponse>> GetAllProduct()
+        public async Task<List<ProductReponse>> GetAllProduct(string Name,string Price)
         {
-            var product = await _context.Products.Select(x => new ProductReponse()
+            if(!string.IsNullOrEmpty(Name) || !string.IsNullOrEmpty(Price))
             {
-                Id = x.Id,
-                Name = x.Name,
-                Price = x.Price,
-                Description = x.Description
-            }).ToListAsync();
-            return product;
+                var product = _context.Products.Where(x => x.Name.Contains(Name) || x.Price.ToString().Contains(Price));
+                var result = await product.Select(x => new ProductReponse()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Price = x.Price,
+                    Description = x.Description
+                }).ToListAsync();
+                return result;
+            }
+            else
+            {
+                var product = await _context.Products.Select(x => new ProductReponse()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Price = x.Price,
+                    Description = x.Description
+                }).ToListAsync();
+                return product;
+            }
+          
 
         }
 

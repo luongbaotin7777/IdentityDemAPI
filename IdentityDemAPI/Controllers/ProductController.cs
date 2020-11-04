@@ -26,9 +26,9 @@ namespace IdentityDemo.API.Controllers
             return Ok(product);
         }
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(string Name, string Price)
         {
-            var product = await _service.GetAllProduct();
+            var product = await _service.GetAllProduct(Name,Price);
             if (product == null)
             {
                 return NotFound();
