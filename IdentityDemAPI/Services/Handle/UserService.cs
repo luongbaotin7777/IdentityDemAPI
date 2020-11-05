@@ -122,7 +122,7 @@ namespace Shared.Users
                 };
             }
 
-            var result = await _signInManager.PasswordSignInAsync(user, request.Password, request.Remeberme, false);
+            var result = await _signInManager.PasswordSignInAsync(user, request.Password, request.Remeberme, true);
             if (result.Succeeded)
 
             {
@@ -183,7 +183,7 @@ namespace Shared.Users
             {
                 return new UserMessageReponse()
                 {
-                    Message = "Username is already existed!",
+                    Message = "Username already exist!",
                     IsSuccess = false,
                 };
             }
@@ -191,7 +191,7 @@ namespace Shared.Users
             {
                 return new UserMessageReponse()
                 {
-                    Message = "Email is already existed!",
+                    Message = "Email already exist!",
                     IsSuccess = false,
                 };
             }
@@ -205,8 +205,8 @@ namespace Shared.Users
                 PhoneNumber = request.PhoneNumber
             };
 
-            var resutl = await _userManager.CreateAsync(user, request.Password);
-            if (resutl.Succeeded)
+            var result = await _userManager.CreateAsync(user, request.Password);
+            if (result.Succeeded)
             {
                 return new UserMessageReponse()
                 {
@@ -218,7 +218,7 @@ namespace Shared.Users
             {
                 Message = "User did not create",
                 IsSuccess = false,
-                Errors = resutl.Errors.Select(e => e.Description)
+                Errors = result.Errors.Select(e => e.Description)
             };
 
         }
@@ -229,7 +229,7 @@ namespace Shared.Users
             {
                 return new UserMessageReponse()
                 {
-                    Message = "Email is Already Existed",
+                    Message = "Email Already Exist",
                     IsSuccess = false
                 };
             }
