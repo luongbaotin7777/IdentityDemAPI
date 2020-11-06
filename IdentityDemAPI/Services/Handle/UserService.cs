@@ -24,7 +24,7 @@ namespace Shared.Users
         private readonly RoleManager<AppRole> _roleManager;
         private readonly IConfiguration _configuration;
         private readonly IPasswordHasher<AppUser> _passwordHasher;
-       
+
         public UserService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, RoleManager<AppRole> roleManager, IConfiguration configuration, IPasswordHasher<AppUser> passwordHasher)
         {
             _userManager = userManager;
@@ -32,7 +32,7 @@ namespace Shared.Users
             _roleManager = roleManager;
             _configuration = configuration;
             _passwordHasher = passwordHasher;
-           
+
         }
 
         public async Task<UserMessageReponse> DeleteUserAsync(string Id)
@@ -56,12 +56,13 @@ namespace Shared.Users
 
         }
 
-        public async Task<List<UserReponse>> GetAllUserAsync(string UserName,string Email)
+        public async Task<List<UserReponse>> GetAllUserAsync(string UserName, string Email)
         {
-            
+
             if (!string.IsNullOrEmpty(UserName) || !string.IsNullOrEmpty(Email))
             {
                 var user = _userManager.Users.Where(x => x.UserName.Contains(UserName) || x.Email.Contains(Email));
+
                 var result = await user.Select(x => new UserReponse()
                 {
                     Id = x.Id,
@@ -70,32 +71,39 @@ namespace Shared.Users
                     LastName = x.LastName,
                     Email = x.Email,
                     Dob = x.Dob,
-                    PhoneNumber = x.PhoneNumber
+                    PhoneNumber = x.PhoneNumber,
+
+
                 }).ToListAsync();
                 return result;
             }
             else
             {
+
                 var user = await _userManager.Users.Select(x => new UserReponse()
                 {
+
                     Id = x.Id,
                     UserName = x.UserName,
                     FirstName = x.FirstName,
                     LastName = x.LastName,
                     Email = x.Email,
                     Dob = x.Dob,
-                    PhoneNumber = x.PhoneNumber
+                    PhoneNumber = x.PhoneNumber,
+
+
                 }).ToListAsync();
                 return user;
             }
-            
-            
+
+
         }
 
         public async Task<UserReponse> GetUserByIdAsync(string Id)
         {
             var users = await _userManager.FindByIdAsync(Id.ToString());
             if (users == null) throw new Exception($"{Id} not found");
+            var roles = await _userManager.GetRolesAsync(users);
             var data = new UserReponse()
             {
                 Id = users.Id,
@@ -104,7 +112,9 @@ namespace Shared.Users
                 LastName = users.LastName,
                 Dob = users.Dob,
                 Email = users.Email,
-                PhoneNumber = users.PhoneNumber
+                PhoneNumber = users.PhoneNumber,
+                Roles = roles
+
             };
             return data;
 
@@ -122,19 +132,23 @@ namespace Shared.Users
                 };
             }
 
-            var result = await _signInManager.PasswordSignInAsync(user, request.Password, request.Remeberme, false);
+            var result = await _signInManager.PasswordSignInAsync(user, request.Password, request.Remeberme, true);
             if (result.Succeeded)
 
             {
-                var roles = await _userManager.GetRolesAsync(user);
-                var claim = new[]
+                var userRoles = await _userManager.GetRolesAsync(user);
+                var claim = new List<Claim>
                 {
                     new Claim(ClaimTypes.Email,user.Email),
                     new Claim(ClaimTypes.GivenName,user.FirstName),
                     new Claim(ClaimTypes.Surname,user.LastName),
-                    new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
-                    new Claim(ClaimTypes.Role,string.Join(";",roles))
+                    new Claim(ClaimTypes.NameIdentifier,user.Id.ToString())
+                    //new Claim(ClaimTypes.Role,string.Join(";",userRoles))
                 };
+                foreach (var userrole in userRoles)
+                {
+                    claim.Add(new Claim(ClaimTypes.Role, userrole));
+                }
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AuthSettings:Key"]));
                 var token = new JwtSecurityToken(
                         issuer: _configuration["AuthSettings:Issuer"],
@@ -164,6 +178,7 @@ namespace Shared.Users
 
         }
 
+      
         public async Task<UserMessageReponse> RegisterUserAsync(UserRegisterRequest request)
         {
             if (request == null)
@@ -183,7 +198,7 @@ namespace Shared.Users
             {
                 return new UserMessageReponse()
                 {
-                    Message = "Username is already existed!",
+                    Message = "Username already exist!",
                     IsSuccess = false,
                 };
             }
@@ -191,7 +206,7 @@ namespace Shared.Users
             {
                 return new UserMessageReponse()
                 {
-                    Message = "Email is already existed!",
+                    Message = "Email already exist!",
                     IsSuccess = false,
                 };
             }
@@ -205,23 +220,70 @@ namespace Shared.Users
                 PhoneNumber = request.PhoneNumber
             };
 
-            var resutl = await _userManager.CreateAsync(user, request.Password);
-            if (resutl.Succeeded)
+            var result = await _userManager.CreateAsync(user, request.Password);
+            if (result.Succeeded)
             {
-                return new UserMessageReponse()
+                if (!string.IsNullOrEmpty(request.RoleId))
                 {
-                    Message = "User created Successfully!",
-                    IsSuccess = true,
-                };
+                    var role = await _roleManager.FindByIdAsync(request.RoleId);
+                    if (role != null)
+                    {
+                        var addRoleResult = await _userManager.AddToRoleAsync(user, role.Name);
+                        if (addRoleResult.Succeeded)
+                        {
+                            return new UserMessageReponse()
+                            {
+                                Message = "User created Successfully!",
+                                IsSuccess = true,
+                            };
+                        }
+                    }
+                    return new UserMessageReponse()
+                    {
+                        Message = "Role Not Found",
+                        IsSuccess = false,
+                    };
+
+                }
+
             }
             return new UserMessageReponse()
             {
                 Message = "User did not create",
                 IsSuccess = false,
-                Errors = resutl.Errors.Select(e => e.Description)
+                Errors = result.Errors.Select(e => e.Description)
             };
 
         }
+
+        //public async Task<UserMessageReponse> RoleAssign(Guid Id, RoleAssignRequest request)
+        //{
+        //    var user = await _userManager.FindByIdAsync(Id.ToString());
+        //    if (user == null)
+        //    {
+        //        return new UserMessageReponse()
+        //        {
+        //            Message = "User Id Not Found",
+        //            IsSuccess = false
+        //        };
+        //    }
+        //    var removeRoles = request.SelectedRoles.Where(x => x.Selected == false).Select(x => x.Name).ToList();
+        //    await _userManager.RemoveFromRolesAsync(user, removeRoles);
+        //    var addRoles = request.SelectedRoles.Where(x => x.Selected).Select(x => x.Name).ToList();
+        //    foreach (var roleName in addRoles)
+        //    {
+        //        if (await _userManager.IsInRoleAsync(user, roleName) == false)
+        //        {
+        //            await _userManager.AddToRolesAsync(user, addRoles);
+        //        }
+        //    }
+        //    return new UserMessageReponse()
+        //    {
+        //        Message = "Grant Role Successed",
+        //        IsSuccess = true
+        //    };
+
+        //}
 
         public async Task<UserMessageReponse> UpdateUserAsync(Guid Id, UserUpdateRequest request)
         {
@@ -229,7 +291,7 @@ namespace Shared.Users
             {
                 return new UserMessageReponse()
                 {
-                    Message = "Email is Already Existed",
+                    Message = "Email Already Exist",
                     IsSuccess = false
                 };
             }
@@ -316,17 +378,42 @@ namespace Shared.Users
             }
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
+            {
+                if (!string.IsNullOrEmpty(request.RoleId))
+                {
+                    var role = await _roleManager.FindByIdAsync(request.RoleId);
+                    if (role != null)
+                    {
+                        var addRoleResult = await _userManager.AddToRoleAsync(user, role.Name);
+                        if (addRoleResult.Succeeded)
+                        {
+                            return new UserMessageReponse()
+                            {
+                                Message = "User created Successfully with role!",
+                                IsSuccess = true,
+                            };
+                        }
+                    }
+                    return new UserMessageReponse()
+                    {
+                        Message = "Role Not Found",
+                        IsSuccess = false,
+                    };
+
+                }
                 return new UserMessageReponse()
                 {
-                    Message = "User Updated",
-                    IsSuccess = true
-
+                    Message = "Update Successed",
+                    IsSuccess = false
                 };
+
+            }
             return new UserMessageReponse()
             {
                 Message = "Update Failed",
-                IsSuccess = true
+                IsSuccess = false
             };
+
         }
     }
 }

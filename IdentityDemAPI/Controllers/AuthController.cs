@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IdentityDemo.API.Dtos;
+using IdentityDemo.API.Entities;
 using IdentityDemo.API.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -22,7 +23,7 @@ namespace IdentityDemo.API.Controllers
         }
         //POST: /api/auth/register
         [HttpPost("Register")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Register ([FromBody] UserRegisterRequest request)
         {
             if (ModelState.IsValid)
@@ -35,6 +36,34 @@ namespace IdentityDemo.API.Controllers
             return BadRequest("Some properties are not valid");
            
         }
+        //Put: /api/auth/grantrole/userId
+        //[HttpPut("grantrole/{Id}")]
+        //public async Task<IActionResult> RoleAssign ( Guid Id,[FromBody]RoleAssignRequest request)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        var result = await _userService.RoleAssign(Id, request);
+        //        if (result.IsSuccess)
+        //        {
+        //            return Ok(result);
+        //        }
+        //        return BadRequest();
+        //    }
+        //    return BadRequest();
+        //}
+        //Post: /api/auth/registeradmin
+        //[HttpPost("RegisterAdmin")]
+        //public async Task<IActionResult> RegisterAdmin([FromBody] UserRegisterRequest request)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        var result = await _userService.RegisterAdminAsync(request);
+        //        if (result.IsSuccess)
+        //            return Ok(result);
+        //        return BadRequest(result);
+        //    }
+        //    return BadRequest("Some properties are not valid");
+        //}
         //POST: /api/auth/login
         [HttpPost("Login")]
         [AllowAnonymous]
@@ -61,6 +90,8 @@ namespace IdentityDemo.API.Controllers
         
         //Get: /api/auth/user
         [HttpGet("User")]
+        [Authorize(Roles="Mod")]
+        [Authorize(Roles="Admin")]
         public async Task<IActionResult> GetAllUser(string Username,string Email)
         {
             var user = await _userService.GetAllUserAsync(Username, Email);
@@ -72,6 +103,7 @@ namespace IdentityDemo.API.Controllers
         }
         //Get: /api/auth/user/id
         [HttpGet("User/{Id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUserById(string Id)
         {
             var user = await _userService.GetUserByIdAsync(Id);
@@ -83,21 +115,24 @@ namespace IdentityDemo.API.Controllers
         }
         //DELETE: /api/auth/user/id
         [HttpDelete("User/{Id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(string Id)
         {
             var user = await _userService.DeleteUserAsync(Id);
             if (user == null)
             {
-                return NotFound("Id not Found");
+                return NotFound(user);
             }
             else
             {
-                return Ok();
+                return Ok(user);
             }
            
         }
         //Put: /api/auth/user/id
         [HttpPut("User/{Id}")]
+        [Authorize(Roles = "Admin")]
+        
         public async Task<IActionResult> UpdateUser(Guid Id,UserUpdateRequest request)
         {
             if (!ModelState.IsValid)

@@ -8,6 +8,7 @@ using IdentityDemo.API.Entities;
 using IdentityDemo.API.Services.Handle;
 using IdentityDemo.API.Services.Interface;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -42,15 +43,17 @@ namespace IdentityDemo.API
              {
                  //Password.RequiredDigit is default true
                  //Password.RequiredLowerCase is default true
-                 options.Password.RequiredLength = 5;
+                 options.Password.RequiredLength = 6;
                  // Cấu hình Lockout - khóa user
                  options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); // Khóa 5 phút
                  options.Lockout.MaxFailedAccessAttempts = 5; // Thất bại 5 lần thì khóa
                  options.Lockout.AllowedForNewUsers = true;
                  options.User.RequireUniqueEmail = true;
+
                  // Cấu hình đăng nhập.
-               /*  options.SignIn.RequireConfirmedEmail = true; */           // Cấu hình xác thực địa chỉ email (email phải tồn tại)
-                /* options.SignIn.RequireConfirmedPhoneNumber = false;*/     // Xác thực số điện thoại
+                 /*  options.SignIn.RequireConfirmedEmail = true; */           // Cấu hình xác thực địa chỉ email (email phải tồn tại)
+                 /* options.SignIn.RequireConfirmedPhoneNumber = false;*/     // Xác thực số điện thoại
+
              }).AddEntityFrameworkStores<ApplicationDbContext>() // lưu trữ thông tin identity trên EF( dbcontext->MySQL)
                  .AddDefaultTokenProviders();// register tokenprovider : phát sinh token (resetpassword, email...)
             services.AddAuthentication(auth =>
@@ -72,16 +75,46 @@ namespace IdentityDemo.API
                 };
 
             });
-
+            services.Configure<SecurityStampValidatorOptions>(options =>
+            {
+                // Trên 30 giây truy cập lại sẽ nạp lại thông tin User (Role)
+                // SecurityStamp trong bảng User đổi -> nạp lại thông tinn Security
+                options.ValidationInterval = TimeSpan.FromSeconds(30);
+            });
+            //DI IUserService
+            services.AddTransient<IUserService, UserService>();
+            //DI IRoleService
+            services.AddTransient<IRoleService, RoleService>();
             //DI IProductService
             services.AddTransient<IProductService, ProductService>();
             //DI UserManager,SignInManager & RoleManager
-            services.AddTransient<UserManager<AppUser>,UserManager<AppUser>>();
-            services.AddTransient<SignInManager<AppUser>,SignInManager<AppUser>>();
+            services.AddTransient<UserManager<AppUser>, UserManager<AppUser>>();
+            services.AddTransient<SignInManager<AppUser>, SignInManager<AppUser>>();
             services.AddTransient<RoleManager<AppRole>, RoleManager<AppRole>>();
-            //DI IUserService
-            services.AddTransient<IUserService, UserService>();
+            // Register AuthorizationHandler
+            services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
+            //Create a policy permission
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Permission.Users.View, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permission.Users.View));
+                }); options.AddPolicy(Permission.Users.Create, policy =>
+                {
+                    policy.AddRequirements(new PermissionRequirement(Permission.Users.Create));
+                });
+                options.AddPolicy(Permission.Users.Edit, policy =>
+                 {
+                     policy.AddRequirements(new PermissionRequirement(Permission.Users.Edit));
+                 }); options.AddPolicy(Permission.Users.Delete, policy =>
+                 {
+                     policy.AddRequirements(new PermissionRequirement(Permission.Users.Delete));
+                 });
 
+
+
+                // The rest omitted for brevity.
+            });
             services.AddControllers();
         }
 
