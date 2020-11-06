@@ -14,7 +14,9 @@ namespace IdentityDemo.API.Services.Interface
         Task<UserMessageReponse> RegisterUserAsync(UserRegisterRequest request);
         Task<UserMessageReponse> DeleteUserAsync(string Id);
         Task<UserMessageReponse> LoginUserAsync(UserLoginRequest request);
-        
-       
+        //Task<UserMessageReponse> RegisterAdminAsync(UserRegisterRequest request);
+        //Task<UserMessageReponse> RoleAssign(Guid Id, RoleAssignRequest request); 
+
+
     }
 }

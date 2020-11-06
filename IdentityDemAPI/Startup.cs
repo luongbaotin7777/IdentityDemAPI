@@ -8,6 +8,7 @@ using IdentityDemo.API.Entities;
 using IdentityDemo.API.Services.Handle;
 using IdentityDemo.API.Services.Interface;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -48,7 +49,7 @@ namespace IdentityDemo.API
                  options.Lockout.MaxFailedAccessAttempts = 5; // Thất bại 5 lần thì khóa
                  options.Lockout.AllowedForNewUsers = true;
                  options.User.RequireUniqueEmail = true;
-                
+
                  // Cấu hình đăng nhập.
                  /*  options.SignIn.RequireConfirmedEmail = true; */           // Cấu hình xác thực địa chỉ email (email phải tồn tại)
                  /* options.SignIn.RequireConfirmedPhoneNumber = false;*/     // Xác thực số điện thoại
@@ -87,11 +88,33 @@ namespace IdentityDemo.API
             //DI IProductService
             services.AddTransient<IProductService, ProductService>();
             //DI UserManager,SignInManager & RoleManager
-            services.AddTransient<UserManager<AppUser>,UserManager<AppUser>>();
-            services.AddTransient<SignInManager<AppUser>,SignInManager<AppUser>>();
+            services.AddTransient<UserManager<AppUser>, UserManager<AppUser>>();
+            services.AddTransient<SignInManager<AppUser>, SignInManager<AppUser>>();
             services.AddTransient<RoleManager<AppRole>, RoleManager<AppRole>>();
-          
+            // Register AuthorizationHandler
+            services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
+            //Create a policy permission
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Permission.Users.View, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permission.Users.View));
+                }); options.AddPolicy(Permission.Users.Create, policy =>
+                {
+                    policy.AddRequirements(new PermissionRequirement(Permission.Users.Create));
+                });
+                options.AddPolicy(Permission.Users.Edit, policy =>
+                 {
+                     policy.AddRequirements(new PermissionRequirement(Permission.Users.Edit));
+                 }); options.AddPolicy(Permission.Users.Delete, policy =>
+                 {
+                     policy.AddRequirements(new PermissionRequirement(Permission.Users.Delete));
+                 });
 
+
+
+                // The rest omitted for brevity.
+            });
             services.AddControllers();
         }
 

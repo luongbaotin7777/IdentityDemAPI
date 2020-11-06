@@ -14,7 +14,7 @@ namespace IdentityDemo.API.Services.Interface
         Task<RoleReponse> GetRoleById(string Id);
         Task<RoleMessageReponse> UpdateRole(Guid Id,UpdateRoleRequest request);
         Task<RoleMessageReponse> DeleteRole(Guid Id);
-        Task<RoleMessageReponse> EditUserInRole(string RoleId);
+        //Task<RoleMessageReponse> AddUserToRole(string UserName, string RoleName);
 
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IdentityDemo.API.Dtos;
+using IdentityDemo.API.Entities;
 using IdentityDemo.API.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace IdentityDemo.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+   
     public class ProductController : ControllerBase
     {
         private readonly IProductService _service;
@@ -20,12 +21,14 @@ namespace IdentityDemo.API.Controllers
             _service = service;
         }
         [HttpPost]
+        
         public async Task<IActionResult> Create([FromBody]ProductRequest request)
         {
             var product = await _service.CreateProduct(request);
             return Ok(product);
         }
         [HttpGet]
+        
         public async Task<IActionResult> GetAll(string Name, string Price)
         {
             var product = await _service.GetAllProduct(Name,Price);

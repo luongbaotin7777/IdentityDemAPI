@@ -24,5 +24,6 @@ namespace IdentityDemo.API.Dtos
         public string PhoneNumber { get; set; }
         [Required]
         public string UserName { get; set; }
+        public IList<string> Roles { get; set; }
     }
 }
