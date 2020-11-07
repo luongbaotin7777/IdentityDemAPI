@@ -79,7 +79,7 @@ namespace Shared.Users
             }
             else
             {
-
+               
                 var user = await _userManager.Users.Select(x => new UserReponse()
                 {
 
@@ -90,7 +90,7 @@ namespace Shared.Users
                     Email = x.Email,
                     Dob = x.Dob,
                     PhoneNumber = x.PhoneNumber,
-
+                    
 
                 }).ToListAsync();
                 return user;
