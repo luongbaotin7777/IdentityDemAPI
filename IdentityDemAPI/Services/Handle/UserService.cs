@@ -178,7 +178,7 @@ namespace Shared.Users
 
         }
 
-      
+
         public async Task<UserMessageReponse> RegisterUserAsync(UserRegisterRequest request)
         {
             if (request == null)
@@ -382,38 +382,37 @@ namespace Shared.Users
                 if (!string.IsNullOrEmpty(request.RoleId))
                 {
                     var role = await _roleManager.FindByIdAsync(request.RoleId);
-                    if (role != null)
+
+                    var addRoleResult = await _userManager.AddToRoleAsync(user, role.Name);
+                    if (addRoleResult.Succeeded)
                     {
-                        var addRoleResult = await _userManager.AddToRoleAsync(user, role.Name);
-                        if (addRoleResult.Succeeded)
+                        return new UserMessageReponse()
                         {
-                            return new UserMessageReponse()
-                            {
-                                Message = "User created Successfully with role!",
-                                IsSuccess = true,
-                            };
-                        }
+                            Message = "User Update Successfully with role!",
+                            IsSuccess = true,
+                        };
                     }
-                    return new UserMessageReponse()
+                    else
                     {
-                        Message = "Role Not Found",
-                        IsSuccess = false,
-                    };
+                        return new UserMessageReponse()
+                        {
+                            Message = "Update role Failed",
+                            IsSuccess = false,
+                        };
+                    }
 
                 }
                 return new UserMessageReponse()
                 {
                     Message = "Update Successed",
-                    IsSuccess = false
+                    IsSuccess = false,
                 };
-
             }
             return new UserMessageReponse()
             {
                 Message = "Update Failed",
-                IsSuccess = false
+                IsSuccess = false,
             };
-
         }
     }
 }
