@@ -28,7 +28,7 @@ namespace IdentityDemo.API.Controllers
             return Ok(product);
         }
         [HttpGet]
-        
+        [Authorize(Permission.View)]
         public async Task<IActionResult> GetAll(string Name, string Price)
         {
             var product = await _service.GetAllProduct(Name,Price);

@@ -34,7 +34,7 @@ namespace IdentityDemo.API.Entities
                 var roleClaims = await _roleManager.GetClaimsAsync(role);
                 var permissions = roleClaims.Where(x => x.Type == CustomClaimTypes.Permission &&
                                                       x.Value == requirement.Permission &&
-                                                      x.Issuer == "Local Authority")
+                                                      x.Issuer == "LOCAL AUTHORITY")
                                                       .Select(x => x.Value);
                 if (permissions.Any())
                 {

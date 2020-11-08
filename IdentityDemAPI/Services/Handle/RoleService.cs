@@ -49,21 +49,21 @@ namespace IdentityDemo.API.Services.Handle
             if (result.Succeeded)
             {
                 var userRole = await _roleManager.FindByNameAsync(role.Name);
-                if (userRole.ToString() == "Admin")
+                if (userRole.Name == "Admin")
                 {
-                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.Users.Create));
-                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.Users.Edit));
-                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.Users.Delete));
-                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.Users.View));
+                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.Create));
+                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.Edit));
+                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.Delete));
+                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.View));
                 }
                 if (userRole.ToString() == "Mod")
                 {
-                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.Users.Edit));
-                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.Users.View));
+                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.Edit));
+                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.View));
                 }
                 if (userRole.ToString() == "User")
                 {
-                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.Users.View));
+                    await _roleManager.AddClaimAsync(userRole, new Claim(CustomClaimTypes.Permission, Permission.View));
                 }
 
                 return new RoleMessageReponse()

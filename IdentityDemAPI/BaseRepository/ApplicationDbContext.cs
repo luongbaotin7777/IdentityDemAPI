@@ -13,6 +13,7 @@ namespace IdentityDemo.API.BaseRepository
     {
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
+            
         }
         //Fluent API Configuration
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -7,14 +7,10 @@ namespace IdentityDemo.API.Entities
 {
     public static class Permission
     {
-        public static class Users
-        {
-            public const string View = "Permissions.Users.View";
-            public const string Create = "Permissions.Users.Create";
-            public const string Edit = "Permissions.Users.Edit";
-            public const string Delete = "Permissions.Users.Delete";
-        }
-        
+        public const string View = "Permissions.View";
+        public const string Create = "Permissions.Create";
+        public const string Edit = "Permissions.Edit";
+        public const string Delete = "Permissions.Delete";
 
     }
 }

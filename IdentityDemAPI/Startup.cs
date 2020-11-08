@@ -96,19 +96,21 @@ namespace IdentityDemo.API
             //Create a policy permission
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(Permission.Users.View, builder =>
+                options.AddPolicy(Permission.View, builder =>
                 {
-                    builder.AddRequirements(new PermissionRequirement(Permission.Users.View));
-                }); options.AddPolicy(Permission.Users.Create, policy =>
-                {
-                    policy.AddRequirements(new PermissionRequirement(Permission.Users.Create));
+                    builder.AddRequirements(new PermissionRequirement(Permission.View));
                 });
-                options.AddPolicy(Permission.Users.Edit, policy =>
+                options.AddPolicy(Permission.Create, policy =>
+                {
+                    policy.AddRequirements(new PermissionRequirement(Permission.Create));
+                });
+                options.AddPolicy(Permission.Edit, policy =>
                  {
-                     policy.AddRequirements(new PermissionRequirement(Permission.Users.Edit));
-                 }); options.AddPolicy(Permission.Users.Delete, policy =>
+                     policy.AddRequirements(new PermissionRequirement(Permission.Edit));
+                 });
+                options.AddPolicy(Permission.Delete, policy =>
                  {
-                     policy.AddRequirements(new PermissionRequirement(Permission.Users.Delete));
+                     policy.AddRequirements(new PermissionRequirement(Permission.Delete));
                  });
 
 
